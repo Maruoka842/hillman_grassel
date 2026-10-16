@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hillman–Grassl 対応</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- KaTeX for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '\\(', right: '\\)', display: false}
+    ]});"></script>
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header>
+    <div class="header-inner">
+      <h1>Hillman–Grassl 対応</h1>
+      <p class="tagline">λ-配列と逆平面分割を結ぶ全単射</p>
+      <nav>
+        <a href="#overview">概要・定義</a>
+        <a href="#algorithm">アルゴリズム</a>
+        <a href="#demo">デモ</a>
+        <a href="#hook-formula">フック長公式の証明</a>
+        <a href="#references">参考文献</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ========== OVERVIEW & DEFINITIONS ========== -->
+  <section id="overview" class="section section-light">
+    <div class="container">
+      <h2>概要・定義</h2>
+      <p>
+        <strong>Hillman–Grassl 対応</strong>（Hillman & Grassl, 1976）は、
+        ヤング図形 \(\lambda\) 上の <strong>\(\lambda\)-配列</strong>（各マスに非負整数を配置した表）と
+        <strong>逆平面分割 (rpp)</strong>（各行・各列が広義単調増加する表）を結ぶ全単射です。
+      </p>
+      <div class="algo-box" style="margin: 1rem 0; padding: 1.2rem 1.5rem;">
+        <ul style="padding-left: 1.2rem; line-height: 1.8;">
+          <li><strong>ヤング図形 \([\lambda]\)：</strong> 分割 \(\lambda = (\lambda_1 \ge \cdots \ge \lambda_\ell > 0)\) に対応するマス目集合 \(\{(i,j) \mid 1 \le i \le \ell,\ 1 \le j \le \lambda_i\}\)。</li>
+          <li><strong>逆平面分割 (rpp)：</strong> 行・列とも広義単調増加（\(\pi_{i,j} \le \pi_{i,j+1}\), \(\pi_{i,j} \le \pi_{i+1,j}\)）な \(\lambda\)-配列。</li>
+        </ul>
+      </div>
+</div>
+  </section>
+
+  <!-- ========== ALGORITHM ========== -->
+  <section id="algorithm" class="section section-light">
+    <div class="container">
+      <h2>アルゴリズム</h2>
+      <p>
+        Hillman–Grassl 対応 \(H\) は λ-配列 \(M\) を λ-rpp \(\pi = H(M)\) に送る。
+        その逆写像 \(H^{-1}\) のアルゴリズムを以下に示す。
+      </p>
+
+      <div class="algo-box">
+        <h3>逆写像 \(H^{-1}\)：rpp → λ-配列</h3>
+        <ol>
+          <li>\(\pi\) の全エントリが \(0\) ならば \(H^{-1}(\pi) = \pi\) として終了。</li>
+          <li>非ゼロエントリを持つ最左列のインデックス \(s\) を求める。</li>
+          <li>列 \(s\) の最下行のマスを \((i_1, j_1)\) とする。</li>
+          <li>格子路 \((i_1,j_1), (i_2,j_2), \ldots, (i_n,j_n)\) を次のルールで構成する：
+            <ul>
+              <li>\(\pi_{i_k-1,\, j_k} = \pi_{i_k,\, j_k}\) であれば <strong>上</strong>：\((i_{k+1},j_{k+1}) = (i_k - 1, j_k)\)</li>
+              <li>そうでなければ <strong>右</strong>：\((i_{k+1},j_{k+1}) = (i_k, j_k + 1)\)（λ の範囲内）</li>
+              <li>範囲外に出たら終了。</li>
+            </ul>
+          </li>
+          <li>格子路上の各マスのエントリを 1 ずつ減じて \(\pi'\) を得る。</li>
+          <li>再帰的に \(N' = H^{-1}(\pi')\) を計算する。</li>
+          <li>\(N'\) のマス \((i_n, s)\) のエントリに 1 を加えたものが \(H^{-1}(\pi)\)。</li>
+        </ol>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== INTERACTIVE DEMO ========== -->
+  <section id="demo" class="section section-dark">
+    <div class="container">
+      <h2>インタラクティブ デモ</h2>
+      <p>
+        分割 λ とデータを入力すると、\(H\) と \(H^{-1}\) の両方を
+        <strong>同時に・ステップごとに</strong>アニメーションで確認できます。
+        各ステップで格子路が矢印つきでハイライトされます。
+      </p>
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 共通：分割入力 + プリセット              -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="demo-step-label">① 分割 λ を入力</div>
+      <div class="demo-controls">
+        <div class="demo-input-group">
+          <label for="shared-partition-input">分割 λ（カンマ区切り）</label>
+          <input type="text" id="shared-partition-input" value="5,4,4,2,1" placeholder="5,4,4,2,1" />
+        </div>
+        <div class="preset-row">
+          <span class="preset-label">例：</span>
+          <button class="preset-btn" data-val="3,3,1">3,3,1</button>
+          <button class="preset-btn" data-val="4,3,2,1">4,3,2,1</button>
+          <button class="preset-btn" data-val="5,4,4,2,1">5,4,4,2,1</button>
+          <button class="preset-btn" data-val="4,4,4,4">4,4,4,4</button>
+        </div>
+        <button id="shared-gen-btn" class="btn">λ を設定 / 更新</button>
+      </div>
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 入力エリア（H 用の M と H⁻¹ 用の π を  -->
+      <!-- 横に並べて同時入力）                    -->
+      <!-- ─────────────────────────────────────── -->
+      <div id="both-input-area" class="hidden">
+
+        <div class="demo-step-label">② 各デモの入力値を設定</div>
+
+        <div class="both-input-grid">
+
+          <!-- ── H 入力 ── -->
+          <div class="single-input-card">
+            <div class="single-input-title">
+              <span class="dir-badge fwd-badge">H</span>
+              λ-配列 <em>M</em> を入力（非負整数）
+            </div>
+            <div id="fwd-array-grid" class="input-grid-wrap"></div>
+            <div class="input-btn-row">
+              <button id="fwd-compute-btn" class="btn btn-fwd">▶ H(M) を計算</button>
+              <button id="fwd-sync-btn" class="btn btn-sync" title="現在の M に対応する rpp H(M) を右の入力欄に反映します">H(M) を右へ反映 →</button>
+            </div>
+          </div>
+
+          <!-- ── H⁻¹ 入力 ── -->
+          <div class="single-input-card">
+            <div class="single-input-title">
+              <span class="dir-badge inv-badge">H⁻¹</span>
+              rpp <em>π</em> を入力（行・列とも広義単調増加）
+            </div>
+            <div id="inv-array-grid" class="input-grid-wrap"></div>
+            <div id="inv-rpp-error" class="rpp-error hidden">⚠ rpp 条件（行・列の広義単調増加）を満たしていません</div>
+            <div class="input-btn-row">
+              <button id="inv-compute-btn" class="btn btn-inv">▶ H⁻¹(π) を計算</button>
+              <button id="inv-sync-btn" class="btn btn-sync" title="現在の π に対応する λ-配列 H⁻¹(π) を左の入力欄に反映します">← H⁻¹(π) を左へ反映</button>
+            </div>
+          </div>
+
+        </div><!-- /.both-input-grid -->
+
+      </div><!-- /#both-input-area -->
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- アニメーション表示エリア（H と H⁻¹ 縦並び） -->
+      <!-- ─────────────────────────────────────── -->
+
+      <!-- ══ H デモ ══ -->
+      <div id="fwd-demo-area" class="demo-area demo-area-fwd hidden">
+        <div class="demo-area-header">
+          <span class="dir-badge fwd-badge">H</span>
+          <span class="demo-area-title">λ-配列 → rpp のステップ再生</span>
+        </div>
+        <div class="playback-bar">
+          <button class="pb-btn" data-pb="fwd" data-action="rewind" title="最初へ">⏮</button>
+          <button class="pb-btn" data-pb="fwd" data-action="prev"   title="前へ">◀</button>
+          <button class="pb-btn pb-play" id="fwd-play-btn" data-pb="fwd" data-action="play">▶ 再生</button>
+          <button class="pb-btn" data-pb="fwd" data-action="next"   title="次へ">▶</button>
+          <button class="pb-btn" data-pb="fwd" data-action="end"    title="最後へ">⏭</button>
+          <span id="fwd-step-counter" class="step-counter">ステップ 0 / 0</span>
+        </div>
+        <div class="progress-track"><div id="fwd-progress" class="progress-bar" style="width:0%"></div></div>
+        <div id="fwd-step-desc" class="step-desc"></div>
+        <div class="legend-row">
+          <span class="legend-item"><span class="leg-swatch" style="background:#fbbf24"></span>経路の開始マス</span>
+          <span class="legend-item"><span class="leg-swatch" style="background:#22d3ee"></span>経路上のマス</span>
+          <span class="legend-item"><span class="leg-swatch" style="background:#34d399"></span>経路の終端マス</span>
+          <span class="legend-item"><span class="leg-swatch" style="background:#166534"></span>変化済みのマス</span>
+          <span class="legend-item"><span class="leg-swatch" style="border:2px solid #c084fc;background:transparent"></span>挿入元 M[r][s]</span>
+        </div>
+        <div class="canvas-pair">
+          <div class="canvas-block">
+            <div class="canvas-label">λ-配列 <em>M</em>（入力・固定）</div>
+            <div class="canvas-wrap"><canvas id="fwd-canvas-in"></canvas></div>
+          </div>
+          <div class="canvas-arrow">⟶ <em>H</em> ⟶</div>
+          <div class="canvas-block">
+            <div class="canvas-label">rpp <em>H(M)</em>（構築中）</div>
+            <div class="canvas-wrap"><canvas id="fwd-canvas-out"></canvas></div>
+          </div>
+        </div>
+        <div id="fwd-final-banner" class="final-banner hidden"></div>
+      </div>
+
+      <!-- ══ H⁻¹ デモ ══ -->
+      <div id="inv-demo-area" class="demo-area demo-area-inv hidden">
+        <div class="demo-area-header">
+          <span class="dir-badge inv-badge">H⁻¹</span>
+          <span class="demo-area-title">rpp → λ-配列のステップ再生</span>
+        </div>
+        <div class="playback-bar">
+          <button class="pb-btn" data-pb="inv" data-action="rewind" title="最初へ">⏮</button>
+          <button class="pb-btn" data-pb="inv" data-action="prev"   title="前へ">◀</button>
+          <button class="pb-btn pb-play" id="inv-play-btn" data-pb="inv" data-action="play">▶ 再生</button>
+          <button class="pb-btn" data-pb="inv" data-action="next"   title="次へ">▶</button>
+          <button class="pb-btn" data-pb="inv" data-action="end"    title="最後へ">⏭</button>
+          <span id="inv-step-counter" class="step-counter">ステップ 0 / 0</span>
+        </div>
+        <div class="progress-track"><div id="inv-progress" class="progress-bar" style="width:0%"></div></div>
+        <div id="inv-step-desc" class="step-desc"></div>
+        <div class="legend-row">
+          <span class="legend-item"><span class="leg-swatch" style="background:#fbbf24"></span>格子路の開始マス</span>
+          <span class="legend-item"><span class="leg-swatch" style="background:#22d3ee"></span>格子路上のマス（減算）</span>
+          <span class="legend-item"><span class="leg-swatch" style="background:#34d399"></span>格子路の終端マス</span>
+          <span class="legend-item"><span class="leg-swatch" style="background:#166534"></span>変化済みのマス</span>
+          <span class="legend-item"><span class="leg-swatch" style="border:2px solid #c084fc;background:transparent"></span>M[iₙ][s] に加算</span>
+        </div>
+        <div class="canvas-pair">
+          <div class="canvas-block">
+            <div class="canvas-label">rpp <em>π</em>（減算されていく）</div>
+            <div class="canvas-wrap"><canvas id="inv-canvas-in"></canvas></div>
+          </div>
+          <div class="canvas-arrow">⟶ <em>H</em><sup>−1</sup> ⟶</div>
+          <div class="canvas-block">
+            <div class="canvas-label">λ-配列 <em>M</em>（構築中）</div>
+            <div class="canvas-wrap"><canvas id="inv-canvas-out"></canvas></div>
+          </div>
+        </div>
+        <div id="inv-final-banner" class="final-banner hidden"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== HOOK LENGTH FORMULA PROOF ========== -->
+  <section id="hook-formula" class="section section-light">
+    <div class="container">
+      <h2>フック長公式の証明</h2>
+      <p>
+        Hillman–Grassl 対応を用いると、対称群の表現論や組合せ論における重要定理である
+        <strong>フック長公式（Hook Length Formula）</strong>を、
+        母関数の極限操作によって極めてエレガントに証明できます。
+      </p>
+
+      <div class="highlight-box">
+        <strong>フック長公式（Frame–Robinson–Thrall, 1954）：</strong><br />
+        分割 \(\lambda \vdash n\) のヤング図形に対する標準ヤング盤（standard Young tableau, SYT）の総数 \(f^\lambda\) は、
+        各マス \(u \in \lambda\) のフック長 \(h(u)\) を用いて次式で与えられる：
+        $$ f^\lambda = \frac{n!}{\prod_{u \in \lambda} h(u)} $$
+      </div>
+
+      <div class="proof-steps">
+        <!-- Step 1 -->
+        <div class="proof-card">
+          <div class="proof-step-badge">Step 1</div>
+          <h3>Hillman–Grassl 対応による母関数等式</h3>
+          <p>
+            Hillman–Grassl 対応 \(H\) は、任意の \(\lambda\)-配列 \(M\) と逆平面分割 \(\pi \in \mathrm{RPP}(\lambda)\) との一対一対応（全単射）を与えます。
+          </p>
+          <p>
+            この対応において、マス \(u = (i,j)\) に置かれたトークン（\(M(u)\) の値）は、
+            長さ \(h(u)\) の格子路に沿って各マスの値を 1 ずつ増加させます。
+            したがって、逆平面分割 \(\pi\) の全マスの値の総和 \(|\pi| := \sum_{u \in \lambda} \pi(u)\) は、
+            フック長 \(h(u)\) と \(M(u)\) の積の総和に厳密に等しくなります：
+          </p>
+          $$ |\pi| = \sum_{u \in \lambda} h(u) M(u) $$
+          <p>
+            \(\lambda\)-配列 \(M\) の各マス \(u\) の値 \(M(u)\) は、条件なしに独立して任意の非負整数 \(0, 1, 2, \ldots\) を取ることができるため、
+            全逆平面分割の \(q\)-母関数は等比級数の積へと因数分解されます：
+          </p>
+          $$ \sum_{\pi \in \mathrm{RPP}(\lambda)} q^{|\pi|} = \prod_{u \in \lambda} \left( \sum_{M(u) = 0}^{\infty} q^{h(u) M(u)} \right) = \prod_{u \in \lambda} \frac{1}{1 - q^{h(u)}} \quad \cdots \text{(A)} $$
+        </div>
+
+        <!-- Step 2 -->
+        <div class="proof-card">
+          <div class="proof-step-badge">Step 2</div>
+          <h3>標準ヤング盤（SYT）による母関数の展開</h3>
+          <p>
+            図では、同じ値のマスを上の行から番号付けしています。黄色の値 1 が、右の表の緑の 2 と 3 に対応します。
+            この番号付けと、次の番号が上の行に来る位置との関係を図で確認します。
+          </p>
+          <p>
+            任意の逆平面分割 \(\pi\) のマスを値の小さい順に並べ、同じ値なら上の行を先にし、同じ行では左のマスを先にします。
+            この順に \(1,2,\ldots,n\) を書き込むと、標準ヤング盤 \(T \in \mathrm{SYT}(\lambda)\) が得られます。
+          </p>
+          <figure class="example-tableau">
+            <div class="tableau-pair">
+              <div>
+                <div class="tableau-label">逆平面分割 \(\pi\)</div>
+                <table class="young-table" aria-label="逆平面分割 pi">
+                  <tbody>
+                    <tr><td>0</td><td class="highlight">1</td><td>3</td><td>4</td><td>5</td></tr>
+                    <tr><td class="highlight">1</td><td>3</td><td>4</td><td>5</td></tr>
+                    <tr><td>2</td><td>4</td><td>5</td><td>6</td></tr>
+                    <tr><td>4</td><td>5</td></tr>
+                    <tr><td>5</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="arrow-block" aria-hidden="true">→</div>
+              <div>
+                <div class="tableau-label">値の小さい順に番号を付けた標準ヤング盤 \(T\)</div>
+                <table class="young-table" aria-label="対応する標準ヤング盤 T">
+                  <tbody>
+                    <tr><td>1</td><td class="path">2</td><td>5</td><td>7</td><td>11</td></tr>
+                    <tr><td class="path">3</td><td>6</td><td>8</td><td>12</td></tr>
+                    <tr><td>4</td><td>9</td><td>13</td><td>16</td></tr>
+                    <tr><td>10</td><td>14</td></tr>
+                    <tr><td>15</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <figcaption>黄色の \(1\) は緑の \(2,3\) に対応します。\(T\) の \(4\to5\) は上方向への移動で、対応する \(\pi\) の値は \(2\to3\) です。</figcaption>
+          </figure>
+          <p>
+            \(x_k\) を、\(T\) の \(k\) が入ったセルの逆平面分割での値とします。
+            標準ヤング盤 \(T\) について、\(k+1\) のセルが \(k\) のセルより上の行にある \(k\) の集合を \(S(T)\) とします。
+            同じ値なら上の行のセルを先に番号付けするため、\(k\in S(T)\) では \(x_{k+1}\ge x_k+1\) となります。
+            それ以外の位置では、値が等しい場合も増える場合もあります。
+          </p>
+          <p>
+            この条件でセル \(k+1\) に強制される 1 の増加は、セル \(k+1\) から \(n\) までの \(n-k\) 個のセルの値に反映されます。
+            よって、固定した \(T\) に対応する逆平面分割の最小総和は \(w(T)=\sum_{k\in S(T)}(n-k)\) です。
+            最小総和を超える追加分は、位置 \(k\) 以降のセルを同時に 1 増やす操作で表せます。影響するセルは \(n-k+1\) 個なので、重みは \(q^{n-k+1}\) です（\(k=1\) は全セルを増やす操作です）。
+            これらをそれぞれ任意回行えるため、固定した \(T\) の母関数の分母は \(\prod_{j=1}^{n}(1-q^j)\) です：
+          </p>
+          $$ \sum_{\pi\in\mathrm{RPP}(\lambda)}q^{|\pi|}=\frac{\sum_{T\in\mathrm{SYT}(\lambda)}q^{w(T)}}{(1-q)(1-q^2)\cdots(1-q^n)} \quad \cdots \text{(B)} $$
+        </div>
+
+        <!-- Step 3 -->
+        <div class="proof-card">
+          <div class="proof-step-badge">Step 3</div>
+          <h3>2つの母関数の合体と極限操作（\(q \to 1\)）</h3>
+          <p>
+            式 (A) と 式 (B) はどちらも同じ母関数 \(\sum_{\pi} q^{|\pi|}\) を表しているため、次の等式が成立します：
+          </p>
+          $$ \frac{\sum_{T \in \mathrm{SYT}(\lambda)} q^{w(T)}}{(1 - q)(1 - q^2) \cdots (1 - q^n)} = \prod_{u \in \lambda} \frac{1}{1 - q^{h(u)}} $$
+          <p>
+            ここで、両辺に \((1 - q)^n\) を乗じます：
+          </p>
+          $$ \frac{\sum_{T \in \mathrm{SYT}(\lambda)} q^{w(T)}}{\prod_{k=1}^n \frac{1 - q^k}{1 - q}} = \prod_{u \in \lambda} \frac{1 - q}{1 - q^{h(u)}} $$
+          <p>
+            等比数列の和の公式より \(\frac{1 - q^k}{1 - q} = 1 + q + q^2 + \cdots + q^{k-1}\)（\(q\)-整数 \([k]_q\)）であることに注意して、
+            両辺で \(q \to 1\)の極限をとります：
+          </p>
+          <ul>
+            <li><strong>左辺の分子：</strong> \(\lim_{q \to 1} \sum_{T \in \mathrm{SYT}(\lambda)} q^{w(T)} = \sum_{T \in \mathrm{SYT}(\lambda)} 1 = f^\lambda\) （標準ヤング盤の総数）</li>
+            <li><strong>左辺の分母：</strong> \(\lim_{q \to 1} \prod_{k=1}^n (1 + q + \cdots + q^{k-1}) = \prod_{k=1}^n k = n!\)</li>
+            <li><strong>右辺：</strong> \(\lim_{q \to 1} \prod_{u \in \lambda} \frac{1}{1 + q + \cdots + q^{h(u)-1}} = \prod_{u \in \lambda} \frac{1}{h(u)}\)</li>
+          </ul>
+          <p>
+            これらをまとめると、直ちに次が得られます：
+          </p>
+          $$ \frac{f^\lambda}{n!} = \prod_{u \in \lambda} \frac{1}{h(u)} \iff f^\lambda = \frac{n!}{\prod_{u \in \lambda} h(u)} $$
+          <p>
+            これにより、Hillman–Grassl 対応を用いたフック長公式の証明が完了します！ \(\blacksquare\)
+          </p>
+        </div>
+      </div>
+
+</div>
+  </section>
+
+  <!-- ========== REFERENCES ========== -->
+  <section id="references" class="section section-light">
+    <div class="container">
+      <h2>参考文献</h2>
+      <ul class="ref-list">
+        <li>
+          R. P. Stanley,
+          <em>Enumerative Combinatorics</em>, Vol. 2, Cambridge University Press, 1999.
+          Section 7.22.
+        </li>
+        <li><a href="https://info.atcoder.jp/entry/algorithm_lectures/hook_length_formula" target="_blank" rel="noopener">AtCoder Algorithm Lectures: フック長の公式</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer>
+    <div class="container">
+      <p>Hillman–Grassl 対応 / 組合せ論のデモサイト</p>
+      <p>Built with HTML, CSS, JavaScript &amp; <a href="https://katex.org/" target="_blank" rel="noopener">KaTeX</a></p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
